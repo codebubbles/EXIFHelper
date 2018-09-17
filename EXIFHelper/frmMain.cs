@@ -44,7 +44,7 @@ namespace EXIFHelper
             lblFilesCount.Text = lstFiles.Items.Count.ToString() + " file(s) selected";
         }
 
-        static Image AddDatetime(Image original, byte[] datetime)
+        static void AddDatetime(Image original, byte[] datetime, string targetDirectory, string fileName)
         {
             const short ExifTypeAscii = 2;
 
@@ -60,12 +60,15 @@ namespace EXIFHelper
 
                     AddProperty(img, ExifTagDateTime, ExifTypeAscii, datetime);
 
-                    return img;
+                    Directory.CreateDirectory(targetDirectory);
+                    img.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
+
+                    //return img;
                 }
             }
 
         }
-        static Image AddGeotag(Image original, double lat, double lng)
+        static void AddGeotag(Image original, double lat, double lng, string targetDirectory, string fileName)
         {
             // These constants come from the CIPA DC-008 standard for EXIF 2.3
             const short ExifTypeByte = 1;
@@ -97,14 +100,16 @@ namespace EXIFHelper
                 ms.Seek(0, SeekOrigin.Begin);
                 using (Image img = Image.FromStream(ms))
                 {
-
                     AddProperty(img, ExifTagGPSVersionID, ExifTypeByte, new byte[] { 2, 3, 0, 0 });
                     AddProperty(img, ExifTagGPSLatitudeRef, ExifTypeAscii, new byte[] { (byte)latHemisphere, 0 });
                     AddProperty(img, ExifTagGPSLatitude, ExifTypeRational, ConvertToRationalTriplet(lat));
                     AddProperty(img, ExifTagGPSLongitudeRef, ExifTypeAscii, new byte[] { (byte)lngHemisphere, 0 });
                     AddProperty(img, ExifTagGPSLongitude, ExifTypeRational, ConvertToRationalTriplet(lng));
 
-                    return img;
+                    Directory.CreateDirectory(targetDirectory);
+                    img.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
+
+                    //return img;
                 }
 
             }
@@ -176,9 +181,9 @@ namespace EXIFHelper
 
             //try
             //{
-                DateTime.ParseExact(txtDateTime.Text, "yyyy:MM:dd HH:mm:ss", CultureInfo.InvariantCulture,
-                               DateTimeStyles.AssumeUniversal |
-                               DateTimeStyles.AdjustToUniversal);
+            DateTime.ParseExact(txtDateTime.Text, "yyyy:MM:dd HH:mm:ss", CultureInfo.InvariantCulture,
+                           DateTimeStyles.AssumeUniversal |
+                           DateTimeStyles.AdjustToUniversal);
             //}
             //catch (Exception ex)
             //{
@@ -192,13 +197,13 @@ namespace EXIFHelper
                 //{
                 var fileName = Path.GetFileName(sourceFile.ToString());
                 var sourceDirectory = Path.GetDirectoryName(sourceFile.ToString());
-                    var targetDirectory = sourceDirectory + "\\DateProcessed";
-                    Directory.CreateDirectory(targetDirectory);
+                var targetDirectory = sourceDirectory + "\\DateProcessed";
+
 
                 using (Image image = new Bitmap(sourceFile.ToString()))
                 {
-                    AddDatetime(image, Encoding.UTF8.GetBytes(txtDateTime.Text + "\0"));
-                    image.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
+                    AddDatetime(image, Encoding.UTF8.GetBytes(txtDateTime.Text + "\0"), targetDirectory, fileName);
+                    //image.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
                 }
                 //}
                 //catch (Exception ex)
@@ -227,10 +232,10 @@ namespace EXIFHelper
                     var fileName = Path.GetFileName(sourceFile.ToString());
                     var sourceDirectory = Path.GetDirectoryName(sourceFile.ToString());
                     var targetDirectory = sourceDirectory + "\\GPSProcessed";
-                    Directory.CreateDirectory(targetDirectory);
+                    //Directory.CreateDirectory(targetDirectory);
 
-                    AddGeotag(image, Convert.ToDouble(txtLatitude.Text), Convert.ToDouble(txtLongitude.Text));
-                    image.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
+                    AddGeotag(image, Convert.ToDouble(txtLatitude.Text), Convert.ToDouble(txtLongitude.Text), targetDirectory, fileName);
+                    //image.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
                 }
                 //}
                 //catch (Exception ex)
