@@ -50,15 +50,19 @@ namespace EXIFHelper
 
             const int ExifTagDateTime = 0x9003;
 
-            MemoryStream ms = new MemoryStream();
+            using (MemoryStream ms = new MemoryStream())
+            {
 
-            original.Save(ms, ImageFormat.Jpeg);
-            ms.Seek(0, SeekOrigin.Begin);
-            Image img = Image.FromStream(ms);
+                original.Save(ms, ImageFormat.Jpeg);
+                ms.Seek(0, SeekOrigin.Begin);
+                using (Image img = Image.FromStream(ms))
+                {
 
-            AddProperty(img, ExifTagDateTime, ExifTypeAscii, datetime);
+                    AddProperty(img, ExifTagDateTime, ExifTypeAscii, datetime);
 
-            return img;
+                    return img;
+                }
+            }
 
         }
         static Image AddGeotag(Image original, double lat, double lng)
@@ -87,18 +91,25 @@ namespace EXIFHelper
                 lng = -lng;
             }
 
-            MemoryStream ms = new MemoryStream();
-            original.Save(ms, ImageFormat.Jpeg);
-            ms.Seek(0, SeekOrigin.Begin);
-            Image img = Image.FromStream(ms);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                original.Save(ms, ImageFormat.Jpeg);
+                ms.Seek(0, SeekOrigin.Begin);
+                using (Image img = Image.FromStream(ms))
+                {
 
-            AddProperty(img, ExifTagGPSVersionID, ExifTypeByte, new byte[] { 2, 3, 0, 0 });
-            AddProperty(img, ExifTagGPSLatitudeRef, ExifTypeAscii, new byte[] { (byte)latHemisphere, 0 });
-            AddProperty(img, ExifTagGPSLatitude, ExifTypeRational, ConvertToRationalTriplet(lat));
-            AddProperty(img, ExifTagGPSLongitudeRef, ExifTypeAscii, new byte[] { (byte)lngHemisphere, 0 });
-            AddProperty(img, ExifTagGPSLongitude, ExifTypeRational, ConvertToRationalTriplet(lng));
+                    AddProperty(img, ExifTagGPSVersionID, ExifTypeByte, new byte[] { 2, 3, 0, 0 });
+                    AddProperty(img, ExifTagGPSLatitudeRef, ExifTypeAscii, new byte[] { (byte)latHemisphere, 0 });
+                    AddProperty(img, ExifTagGPSLatitude, ExifTypeRational, ConvertToRationalTriplet(lat));
+                    AddProperty(img, ExifTagGPSLongitudeRef, ExifTypeAscii, new byte[] { (byte)lngHemisphere, 0 });
+                    AddProperty(img, ExifTagGPSLongitude, ExifTypeRational, ConvertToRationalTriplet(lng));
 
-            return img;
+                    return img;
+                }
+
+            }
+
+
         }
 
         static byte[] ConvertToRationalTriplet(double value)
@@ -163,35 +174,37 @@ namespace EXIFHelper
         private void btnWriteDate_Click(object sender, EventArgs e)
         {
 
-            try
-            {
+            //try
+            //{
                 DateTime.ParseExact(txtDateTime.Text, "yyyy:MM:dd HH:mm:ss", CultureInfo.InvariantCulture,
                                DateTimeStyles.AssumeUniversal |
                                DateTimeStyles.AdjustToUniversal);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "Error");
-                return;
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(ex.ToString(), "Error");
+            //    return;
+            //}
             var sourceFiles = lstFiles.Items;
             foreach (var sourceFile in sourceFiles)
             {
-                Image image = new Bitmap(sourceFile.ToString());
-                try
-                {
-                    var fileName = Path.GetFileName(sourceFile.ToString());
-                    var sourceDirectory = Path.GetDirectoryName(sourceFile.ToString());
+                //try
+                //{
+                var fileName = Path.GetFileName(sourceFile.ToString());
+                var sourceDirectory = Path.GetDirectoryName(sourceFile.ToString());
                     var targetDirectory = sourceDirectory + "\\DateProcessed";
                     Directory.CreateDirectory(targetDirectory);
 
-                    AddDatetime(image, Encoding.UTF8.GetBytes(txtDateTime.Text + "\0"))
-                      .Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
-                }
-                catch (Exception ex)
+                using (Image image = new Bitmap(sourceFile.ToString()))
                 {
-                    MessageBox.Show(ex.ToString());
+                    AddDatetime(image, Encoding.UTF8.GetBytes(txtDateTime.Text + "\0"));
+                    image.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
                 }
+                //}
+                //catch (Exception ex)
+                //{
+                //    MessageBox.Show(ex.ToString());
+                //}
             }
             btnWriteDate.Enabled = false;
             MessageBox.Show("Date Processing Completed !!");
@@ -207,21 +220,23 @@ namespace EXIFHelper
             var sourceFiles = lstFiles.Items;
             foreach (var sourceFile in sourceFiles)
             {
-                Image image = new Bitmap(sourceFile.ToString());
-                try
+                //try
+                //{
+                using (Image image = new Bitmap(sourceFile.ToString()))
                 {
                     var fileName = Path.GetFileName(sourceFile.ToString());
                     var sourceDirectory = Path.GetDirectoryName(sourceFile.ToString());
                     var targetDirectory = sourceDirectory + "\\GPSProcessed";
                     Directory.CreateDirectory(targetDirectory);
 
-                    AddGeotag(image, Convert.ToDouble(txtLatitude.Text), Convert.ToDouble(txtLongitude.Text))
-                      .Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
+                    AddGeotag(image, Convert.ToDouble(txtLatitude.Text), Convert.ToDouble(txtLongitude.Text));
+                    image.Save(targetDirectory + "\\" + fileName, ImageFormat.Jpeg);
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString());
-                }
+                //}
+                //catch (Exception ex)
+                //{
+                //    MessageBox.Show(ex.ToString());
+                //}
             }
             btnWriteGeoTag.Enabled = false;
             MessageBox.Show("GPS Processing Completed !!");
