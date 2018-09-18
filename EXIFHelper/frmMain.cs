@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace EXIFHelper
@@ -165,9 +160,9 @@ namespace EXIFHelper
                         {
                             System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
                             string propValue = encoding.GetString(propItems[count].Value);
-                            if (string.IsNullOrWhiteSpace(propValue) != true)
-                            {
-                                lstFilledFiles.Items.Add(Path.GetFileName(lstFiles.Items[i].ToString()) + "\t" + propValue);
+                            if (string.IsNullOrEmpty(propValue) != true && propValue !="\0")
+                            {                                
+                                lstFilledFiles.Items.Add(Path.GetFileName(lstFiles.Items[i].ToString()) + "\t'" + propValue +"'");
                             }
                         }
                         count++;
@@ -386,6 +381,7 @@ namespace EXIFHelper
 
                 }
             }
+            lblFilesCount.Text = lstFiles.Items.Count.ToString() + " file(s) selected";
         }
     }
 }
